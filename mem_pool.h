@@ -2,7 +2,6 @@
 #define MEM_POOL_H
 
 struct slab {
-    void *cache;
     void *free;
     struct slab *next;
 };

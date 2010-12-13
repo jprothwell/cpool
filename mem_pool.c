@@ -2,35 +2,40 @@
 #include <stdlib.h>
 #include "mem_pool.h"
 
-/*
- *   slab
- *   +---------+ -----------------------
- *   |         |  /|\            /|\
- *   |         |   |              |
- *   |         | obj_size         |
- *   |         |   |        real_obj_size
- *   |         |  \|/             |
- *   +---------+ --------         |
- *   |  void*  |                 \|/
- *   +---------+ -----------------------
- *   |         |
- *   |         |
- *   |         |
- *   |         |
- *   |         |
- *   +---------+
- *   |  void*  |
- *   +---------+
- *   |         |
- *   |         |
- *   |         |
- *   |         |
- *   |         |
- *   +---------+
- *   |  void*  |
- *   +---------+
+ /*
+ *      slab                slab
+ *      +---------+    +--->+---------+
+ *      |  *free  |    |    |  *free  |
+ *      |  *next  |----+    |  *next  |
+ *      +---------+         +---------+ -----------------------
+ *      |         |         |         |  /|\            /|\
+ *      |         |         |         |   |              |
+ *      |         |         |         | obj_size         |
+ *      |         |         |         |   |        real_obj_size
+ *      |         |         |         |  \|/             |
+ *      |         |         +---------+ --------         |
+ *      |         |         |  void*  |                 \|/
+ *      |         |         +---------+ -----------------------
+ *      |         |         |         |
+ *      |         |         |         |
+ *      |         |         |         |
+ *      |         |         |         |
+ *      |         |         |         |
+ *      |         |         +---------+
+ *      |         |         |  void*  |
+ *      |         |         +---------+
+ *      |         |         |         |
+ *      |         |         |         |
+ *      |         |         |         |
+ *      |         |         |         |
+ *      |         |         |         |
+ *      |         |         +---------+
+ *      |         |         |  void*  |
+ *      +---------+         +---------+
  *
  */
+
+#define SLAB_CACHE(slab) ((void*)slab + sizeof(slab_t))
 
 const size_t OBJ_NUM = 128;
 
@@ -46,8 +51,8 @@ void *get_freepointer(mem_pool_t *mpl, void *obj)
 
 void init_slab(mem_pool_t *mpl, slab_t *slab)
 {
-    void *start = slab->cache;
-    void *end = slab->cache + mpl->cache_size;
+    void *start = SLAB_CACHE(slab);
+    void *end = SLAB_CACHE(slab) + mpl->cache_size;
 
     slab->free = start;
     for (; start < end; start += mpl->real_obj_size) {
@@ -61,8 +66,7 @@ slab_t *add_new_slab(mem_pool_t *mpl)
 {
     slab_t *new_slab;
 
-    new_slab = malloc(sizeof(slab_t));
-    new_slab->cache = malloc(mpl->cache_size);
+    new_slab = malloc(sizeof(slab_t) + mpl->cache_size);
 
     init_slab(mpl, new_slab);
 
@@ -74,7 +78,6 @@ slab_t *add_new_slab(mem_pool_t *mpl)
 
 void free_slab(slab_t *slab)
 {
-    free(slab->cache);
     free(slab);
 }
 
