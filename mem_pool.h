@@ -12,7 +12,9 @@ struct mem_pool {
     int obj_size;
     int real_obj_size;
     int cache_size;
+    int slab_nr;
     slab_t *slab_head;
+    slab_t *recent_slab;
 };
 
 typedef struct mem_pool mem_pool_t;
