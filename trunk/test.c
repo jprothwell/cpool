@@ -122,6 +122,8 @@ void sequence_case3(void)
     }
 
     TEST_TRUE(mpl->slab_nr == 1)
+    TEST_TRUE(mpl->obj_nr == 128)
+    TEST_TRUE(mpl->free_obj_nr == 0)
 
     /* free the 80 chunks */
     for (i = 0; i < 80; i++) {
@@ -131,6 +133,8 @@ void sequence_case3(void)
     }
 
     TEST_TRUE(mpl->slab_nr == 1)
+    TEST_TRUE(mpl->obj_nr == 128)
+    TEST_TRUE(mpl->free_obj_nr == 80)
 
     /* alloc 80 + 128 chunks */
     for (i = 0; i < 80; i++) {
@@ -150,17 +154,30 @@ void sequence_case3(void)
     }
 
     TEST_TRUE(mpl->slab_nr == 2)
+    TEST_TRUE(mpl->obj_nr == 256)
+    TEST_TRUE(mpl->free_obj_nr == 0)
 
-    /* free 256 chunks */
-    for (i = 0; i < 256; i++) {
+    /* free 56 chunks */
+    for (i = 0; i < 56; i++) {
         if (array[i]) {
             mem_pool_free(mpl, array[i]);
         }
     }
 
     TEST_TRUE(mpl->slab_nr == 2)
+    TEST_TRUE(mpl->obj_nr == 256)
+    TEST_TRUE(mpl->free_obj_nr == 56)
 
-    TEST_TRUE(mpl->slab_nr == 200/OBJ_NUM + 1)
+    /* free 200 chunks */
+    for (i = 56; i < 256; i++) {
+        if (array[i]) {
+            mem_pool_free(mpl, array[i]);
+        }
+    }
+
+    TEST_TRUE(mpl->slab_nr == 2)
+    TEST_TRUE(mpl->obj_nr == 256)
+    TEST_TRUE(mpl->free_obj_nr == 256)
 
     destroy_mem_pool(mpl);
 }
@@ -170,5 +187,6 @@ int main(int argc, char* argv[])
     sequence_case1();
     sequence_case2();
     sequence_case3();
+
     return 0;
 }

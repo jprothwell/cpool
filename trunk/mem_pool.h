@@ -13,6 +13,8 @@ struct mem_pool {
     int real_obj_size;
     int cache_size;
     int slab_nr;
+    int obj_nr;
+    int free_obj_nr;
     slab_t *slab_head;
     slab_t *recent_slab;
 };

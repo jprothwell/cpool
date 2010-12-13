@@ -74,6 +74,8 @@ slab_t *add_new_slab(mem_pool_t *mpl)
     mpl->slab_head = new_slab;
 
     mpl->slab_nr++;
+    mpl->obj_nr += OBJ_NUM;
+    mpl->free_obj_nr += OBJ_NUM;
 
     return new_slab;
 }
@@ -97,6 +99,8 @@ mem_pool_t *create_mem_pool(int obj_size)
     mpl->cache_size = OBJ_NUM * mpl->real_obj_size;
 
     mpl->slab_nr = 0;
+    mpl->obj_nr = 0;
+    mpl->free_obj_nr = 0;
     mpl->slab_head = NULL;
     mpl->recent_slab = NULL;
 }
@@ -142,6 +146,8 @@ found:
     found_slab->free = get_freepointer(mpl, object);
     set_freepointer(mpl, object, found_slab);
 
+    mpl->free_obj_nr--;
+
     return object;
 }    
 
@@ -152,4 +158,6 @@ void mem_pool_free(mem_pool_t *mpl, void *object)
     slab = (slab_t*)get_freepointer(mpl, object);
     set_freepointer(mpl, object, slab->free);
     slab->free = object;
+
+    mpl->free_obj_nr++;
 }
