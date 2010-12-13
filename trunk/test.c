@@ -182,11 +182,40 @@ void sequence_case3(void)
     destroy_mem_pool(mpl);
 }
 
+void leak_case1(void)
+{
+    mem_pool_t *mpl;
+    void *new;
+    int i, j;
+    void *array[1000];
+
+    for (j = 0; j < 10; j++) {
+        mpl = create_mem_pool(1024*1024);
+
+        /* alloc 128 chunks */
+        for (i = 0; i < 128; i++) {
+            new = mem_pool_alloc(mpl);
+            if (new) {
+                array[i] = new;
+            }
+        }
+
+        TEST_TRUE(mpl->slab_nr == 1)
+        TEST_TRUE(mpl->obj_nr == 128)
+        TEST_TRUE(mpl->free_obj_nr == 0)
+
+        destroy_mem_pool(mpl);
+        system("ps aux|grep ./test|grep -v grep");
+    }
+}
+
+
 int main(int argc, char* argv[])
 {
     sequence_case1();
     sequence_case2();
     sequence_case3();
 
+    leak_case1();
     return 0;
 }
