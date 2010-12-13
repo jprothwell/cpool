@@ -73,6 +73,8 @@ slab_t *add_new_slab(mem_pool_t *mpl)
     new_slab->next = mpl->slab_head;
     mpl->slab_head = new_slab;
 
+    mpl->slab_nr++;
+
     return new_slab;
 }
 
@@ -94,7 +96,9 @@ mem_pool_t *create_mem_pool(int obj_size)
     mpl->real_obj_size = mpl->obj_size + sizeof(void*);
     mpl->cache_size = OBJ_NUM * mpl->real_obj_size;
 
+    mpl->slab_nr = 0;
     mpl->slab_head = NULL;
+    mpl->recent_slab = NULL;
 }
 
 void destroy_mem_pool(mem_pool_t *mpl)
@@ -117,9 +121,15 @@ void *mem_pool_alloc(mem_pool_t *mpl)
     slab_t *found_slab;
     void *object;
 
+    if (mpl->recent_slab && mpl->recent_slab->free) {
+        found_slab = mpl->recent_slab;
+        goto found;
+    }
+
     found_slab = mpl->slab_head;
     while (found_slab) {
         if (found_slab->free) {
+            mpl->recent_slab = found_slab;
             goto found;
         }
         found_slab = found_slab->next;
